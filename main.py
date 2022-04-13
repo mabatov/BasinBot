@@ -8,24 +8,15 @@ bot = telebot.TeleBot(CONFIG_VARS.token)
 conn = sqlite3.connect("db/BasinBot.db", check_same_thread=False)
 cursor = conn.cursor()
 
-
-# @bot.message_handler(commands=['reg'])
-
-
 def db_insert_user(user_id: int, username: str, user_firstname: str, user_lastname: str):
     cursor.execute('INSERT INTO user (user_id, username, user_firstname, user_lastname) VALUES (?, ?, ?, ?)',
                    (user_id, username, user_firstname, user_lastname))
     conn.commit()
 
-
 def db_check_user(user_id: int):
     cursor.execute('select username from user where user_id =?', (user_id,))
     usr = cursor.fetchone()
     return usr
-    # if usr is not None:
-    #     print(str(usr) + ' уже зареган')
-    # else:
-    #     db_insert_user(user_id=user_id, username=username, user_firstname=user_firstname, user_lastname=user_lastname)
 
 
 def db_startBooking(user_id: int, username: str, user_firstname: str, user_lastname: str):
@@ -40,7 +31,6 @@ def db_stopBooking(user_id: int, username: str, user_firstname: str, user_lastna
                    (datetime.datetime.now(), user_id))
     conn.commit()
 
-
 def db_checkBooking():
     cursor.execute('select username from user where isBooked = 1')
     chkBooking = cursor.fetchone()
@@ -50,17 +40,14 @@ def db_checkBooking():
 def db_selectAllUsers():
     cursor.execute('select * from user')
     chkBooking = cursor.fetchall()
-    # for row in chkBooking:
-    #     print(row[1])
     return chkBooking
 
 
 def db_checkLastWasher():
     cursor.execute('select username from user where user_id = (select user_id from booking order by stopTime desc)')
     result = str(cursor.fetchone())[2:-3]
-    # for row in chkBooking:
-    #     print(row[1])
     return result
+
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
@@ -135,23 +122,12 @@ def get_text_messages(message):
             markup.add(item1, item3)
             bot.send_message(message.chat.id, '@' + str(username) + ' освободил тазик.', reply_markup=markup)
 
-            # userArr = db_selectAllUsers()
-            # for usr in userArr:
-            #     bot.send_message(usr, username + ' освободил тазик.')
-
     elif message.text == "У кого тазик?":
-        # bot.send_message(message.chat.id, username + ' запросил юзера с тазом.')
         print(username + ' запросил юзера с тазом.')
 
         if db_checkBooking() is not None:
             bot.send_message(message.chat.id, '🔴 Тазик сейчас у @' + str(db_checkBooking())[2:-3])
         else:
             bot.send_message(message.chat.id, '🟢 Тазик сейчас свободен!')
-
-
-# @bot.message_handler(func=lambda m: True)
-# def echo_all(message):
-# 	bot.reply_to(message, message.text)
-
 
 bot.infinity_polling()
