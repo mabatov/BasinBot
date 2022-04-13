@@ -1,5 +1,4 @@
 config.py
-identifier.sqlite
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
