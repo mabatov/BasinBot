@@ -5,7 +5,7 @@ from telebot import types
 from config import CONFIG_VARS
 
 bot = telebot.TeleBot(CONFIG_VARS.token)
-conn = sqlite3.connect("db/BasinBot.db", check_same_thread=False)
+conn = sqlite3.connect('db/BasinBot.db', check_same_thread=False)
 cursor = conn.cursor()
 
 def db_insert_user(user_id: int, username: str, user_firstname: str, user_lastname: str):
@@ -16,7 +16,7 @@ def db_insert_user(user_id: int, username: str, user_firstname: str, user_lastna
 def db_check_user(user_id: int):
     cursor.execute('select username from user where user_id =?', (user_id,))
     usr = cursor.fetchone()
-    return usr
+    return usr[0]
 
 
 def db_startBooking(user_id: int, username: str, user_firstname: str, user_lastname: str):
@@ -58,7 +58,7 @@ def start_message(message):
 
     regState = db_check_user(user_id=user_id)
 
-    print(str(datetime.datetime.now()) + '[INFO] ' +"The result of db_check_user: " + str(regState))
+    print(str(datetime.datetime.now()) + '[INFO] ' +'The result of db_check_user: ' + str(regState))
     if regState is not None:
         print(str(datetime.datetime.now()) + '[INFO] ' +'Пользователь ' + str(regState) + ' уже зарегистрирован.')
         bot.send_message(message.from_user.id, 'Пользователь ' + str(username) + ' уже зарегистрирован.')
@@ -69,11 +69,11 @@ def start_message(message):
         print(str(datetime.datetime.now()) + '[INFO] ' +'Пользователь ' + str(username) + ' успешно зарегистрирован.')
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    item1 = types.KeyboardButton("Заступил на дежурство!")
-    item2 = types.KeyboardButton("Тазик свободен!")
-    item3 = types.KeyboardButton("У кого тазик?")
+    item1 = types.KeyboardButton('Заступил на дежурство!')
+    item2 = types.KeyboardButton('Тазик свободен!')
+    item3 = types.KeyboardButton('У кого тазик?')
     markup.add(item1, item2, item3)
-    bot.send_message(message.chat.id, "Выбери нужный вариант:", reply_markup=markup)
+    bot.send_message(message.chat.id, 'Выбери нужный вариант:', reply_markup=markup)
 
 
 @bot.message_handler(content_types=['text'])
@@ -83,7 +83,7 @@ def get_text_messages(message):
     user_firstname = message.from_user.first_name
     user_lastname = message.from_user.last_name
 
-    if message.text == "Заступил на дежурство!":
+    if message.text == 'Заступил на дежурство!':
         if db_checkBooking() is not None:
             bot.send_message(message.chat.id, '⛔ @' + str(db_checkBooking())[2:-3] + ' уже стирает')
             print(str(datetime.datetime.now()) + '[INFO] ' +username + ' пытался захватить тазик.')
@@ -95,12 +95,12 @@ def get_text_messages(message):
             print(str(datetime.datetime.now()) + '[INFO] ' +username + ' приступил к стирке.')
 
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-            item1 = types.KeyboardButton("Тазик свободен!")
-            item3 = types.KeyboardButton("У кого тазик?")
+            item1 = types.KeyboardButton('Тазик свободен!')
+            item3 = types.KeyboardButton('У кого тазик?')
             markup.add(item1, item3)
             bot.send_message(message.chat.id, '@' + username + ' приступил к стирке🧺', reply_markup=markup)
 
-    elif message.text == "Тазик свободен!":
+    elif message.text == 'Тазик свободен!':
         if db_checkBooking() is not None and (str(db_checkBooking())[2:-3] != username):
             print(str(datetime.datetime.now()) + '[INFO] ' +str(db_checkBooking())[2:-3])
             print(str(datetime.datetime.now()) + '[INFO] ' +user_firstname)
@@ -116,13 +116,13 @@ def get_text_messages(message):
             print(str(datetime.datetime.now()) + '[INFO] ' +str(username) + ' освободил тазик.')
 
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-            item1 = types.KeyboardButton("Заступил на дежурство!")
-            # item2 = types.KeyboardButton("Тазик свободен!")
-            item3 = types.KeyboardButton("У кого тазик?")
+            item1 = types.KeyboardButton('Заступил на дежурство!')
+            # item2 = types.KeyboardButton('Тазик свободен!')
+            item3 = types.KeyboardButton('У кого тазик?')
             markup.add(item1, item3)
             bot.send_message(message.chat.id, '@' + str(username) + ' освободил тазик.', reply_markup=markup)
 
-    elif message.text == "У кого тазик?":
+    elif message.text == 'У кого тазик?':
         print(str(datetime.datetime.now()) + '[INFO] ' +username + ' запросил юзера с тазом.')
 
         if db_checkBooking() is not None:
