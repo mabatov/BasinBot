@@ -8,15 +8,20 @@ bot = telebot.TeleBot(CONFIG_VARS.token)
 conn = sqlite3.connect('db/BasinBot.db', check_same_thread=False)
 cursor = conn.cursor()
 
+
 def db_insert_user(user_id: int, username: str, user_firstname: str, user_lastname: str):
     cursor.execute('INSERT INTO user (user_id, username, user_firstname, user_lastname) VALUES (?, ?, ?, ?)',
                    (user_id, username, user_firstname, user_lastname))
     conn.commit()
 
+
 def db_check_user(user_id: int):
     cursor.execute('select username from user where user_id =?', (user_id,))
     usr = cursor.fetchone()
-    return usr[0]
+    if usr is not None:
+        return usr[0]
+    else:
+        return usr
 
 
 def db_startBooking(user_id: int, username: str, user_firstname: str, user_lastname: str):
@@ -30,6 +35,7 @@ def db_stopBooking(user_id: int, username: str, user_firstname: str, user_lastna
     cursor.execute('UPDATE booking set stopTime = ? where user_id = ? AND startTime is not NULL AND stopTime is NULL',
                    (datetime.datetime.now(), user_id))
     conn.commit()
+
 
 def db_checkBooking():
     cursor.execute('select username from user where isBooked = 1')
@@ -58,15 +64,15 @@ def start_message(message):
 
     regState = db_check_user(user_id=user_id)
 
-    print(str(datetime.datetime.now()) + '[INFO] ' +'The result of db_check_user: ' + str(regState))
+    print(str(datetime.datetime.now()) + '[INFO] ' + 'The result of db_check_user: ' + str(regState))
     if regState is not None:
-        print(str(datetime.datetime.now()) + '[INFO] ' +'Пользователь ' + str(regState) + ' уже зарегистрирован.')
+        print(str(datetime.datetime.now()) + '[INFO] ' + 'Пользователь ' + str(regState) + ' уже зарегистрирован.')
         bot.send_message(message.from_user.id, 'Пользователь ' + str(username) + ' уже зарегистрирован.')
     else:
         db_insert_user(user_id=user_id, username=username, user_firstname=user_firstname, user_lastname=user_lastname)
         bot.send_message(message.chat.id, 'Добро пожаловать, ' + message.from_user.first_name + '!')
         bot.send_message(message.from_user.id, 'Пользователь успешно зарегистрирован!')
-        print(str(datetime.datetime.now()) + '[INFO] ' +'Пользователь ' + str(username) + ' успешно зарегистрирован.')
+        print(str(datetime.datetime.now()) + '[INFO] ' + 'Пользователь ' + str(username) + ' успешно зарегистрирован.')
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     item1 = types.KeyboardButton('Заступил на дежурство!')
@@ -86,13 +92,13 @@ def get_text_messages(message):
     if message.text == 'Заступил на дежурство!':
         if db_checkBooking() is not None:
             bot.send_message(message.chat.id, '⛔ @' + str(db_checkBooking())[2:-3] + ' уже стирает')
-            print(str(datetime.datetime.now()) + '[INFO] ' +username + ' пытался захватить тазик.')
+            print(str(datetime.datetime.now()) + '[INFO] ' + username + ' пытался захватить тазик.')
 
         else:
             # bot.send_message(message.chat.id, username + ' приступил к стирке.')
             db_startBooking(user_id=user_id, username=username, user_firstname=user_firstname,
                             user_lastname=user_lastname)
-            print(str(datetime.datetime.now()) + '[INFO] ' +username + ' приступил к стирке.')
+            print(str(datetime.datetime.now()) + '[INFO] ' + username + ' приступил к стирке.')
 
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
             item1 = types.KeyboardButton('Тазик свободен!')
@@ -102,8 +108,8 @@ def get_text_messages(message):
 
     elif message.text == 'Тазик свободен!':
         if db_checkBooking() is not None and (str(db_checkBooking())[2:-3] != username):
-            print(str(datetime.datetime.now()) + '[INFO] ' +str(db_checkBooking())[2:-3])
-            print(str(datetime.datetime.now()) + '[INFO] ' +user_firstname)
+            print(str(datetime.datetime.now()) + '[INFO] ' + str(db_checkBooking())[2:-3])
+            print(str(datetime.datetime.now()) + '[INFO] ' + user_firstname)
             bot.send_message(message.chat.id, '⛔ Не удалось. Тазик находится в руках @' + str(db_checkBooking())[2:-3])
         elif db_checkBooking() is None:
             bot.send_message(message.chat.id,
@@ -113,7 +119,7 @@ def get_text_messages(message):
             # bot.send_message(message.chat.id, username + ' освободил тазик.')
             db_stopBooking(user_id=user_id, username=username, user_firstname=user_firstname,
                            user_lastname=user_lastname)
-            print(str(datetime.datetime.now()) + '[INFO] ' +str(username) + ' освободил тазик.')
+            print(str(datetime.datetime.now()) + '[INFO] ' + str(username) + ' освободил тазик.')
 
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
             item1 = types.KeyboardButton('Заступил на дежурство!')
@@ -123,11 +129,12 @@ def get_text_messages(message):
             bot.send_message(message.chat.id, '@' + str(username) + ' освободил тазик.', reply_markup=markup)
 
     elif message.text == 'У кого тазик?':
-        print(str(datetime.datetime.now()) + '[INFO] ' +username + ' запросил юзера с тазом.')
+        print(str(datetime.datetime.now()) + '[INFO] ' + username + ' запросил юзера с тазом.')
 
         if db_checkBooking() is not None:
             bot.send_message(message.chat.id, '🔴 Тазик сейчас у @' + str(db_checkBooking())[2:-3])
         else:
-            bot.send_message(message.chat.id, '🟢 Тазик сейчас свободен! Последний пользовался @' + db_checkLastWasher())
+            bot.send_message(message.chat.id,
+                             '🟢 Тазик сейчас свободен! Последний пользовался @' + db_checkLastWasher())
 
 bot.infinity_polling()
