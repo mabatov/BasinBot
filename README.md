@@ -1,0 +1,2 @@
+# BasinBot
+pip install pyTelegramBotAPI
