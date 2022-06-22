@@ -93,8 +93,8 @@ def statistics_message(message):
     user_firstname = message.from_user.first_name
     user_lastname = message.from_user.last_name
 
+    print(str(datetime.datetime.now()) + '[INFO] ' + username + ' запросил стастистику')
     print(db_stats())
-    print('test db stats')
 
     result = 'Статистика:\n'
     for i in db_stats():
@@ -158,6 +158,19 @@ def get_text_messages(message):
         else:
             bot.send_message(message.chat.id,
                              '🟢 Тазик сейчас свободен! Последний пользовался @' + db_checkLastWasher())
+
+        result = 'Статистика:\n'
+        for i in db_stats():
+            if (i[0] == 1):
+                result += '🥇 '
+            elif (i[0] == 2):
+                result += '🥈 '
+            elif (i[0] == 3):
+                result += '🥉 '
+            result += 'Пользователь: ' + str(i[1]) + ', стирок: ' + str(i[3]) + ' (' + str(i[2]) + ' мин)\n'
+
+        print(result)
+        bot.send_message(message.chat.id, result)
 
 
 bot.infinity_polling()
